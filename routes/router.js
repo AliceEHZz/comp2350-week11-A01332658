@@ -12,7 +12,7 @@ const { v4: uuid } = require("uuid");
 const passwordPepper = "SeCretPeppa4MySal+";
 
 router.get("/", async (req, res) => {
-  console.log("page hit");
+  console.log("page hit home");
   try {
     const userCollection = database.db("lab_example").collection("users");
     const users = await userCollection
@@ -84,9 +84,6 @@ router.get("/deleteUser", async (req, res) => {
       let deleteUser = await userModel.findByPk(userId);
       console.log("deleteUser: ");
       console.log(deleteUser);
-      if (deleteUser !== null) {
-        await deleteUser.destroy();
-      }
     }
     res.redirect("/");
   } catch (ex) {
@@ -115,7 +112,7 @@ router.post("/addUser", async (req, res) => {
       password_salt: password_salt.digest("hex"),
       password_hash: password_hash.digest("hex"),
     });
-    await newUser.save();
+
     res.redirect("/");
   } catch (ex) {
     res.render("error", { message: "Error connecting to MongoDB" });
