@@ -1,5 +1,8 @@
 const router = require("express").Router();
 const database = include("databaseConnection");
+const Joi = require("joi");
+const schema = Joi.string().max(10).required();
+
 //const dbModel = include('databaseAccessLayer');
 //const dbModel = include('staticData');
 
@@ -21,7 +24,7 @@ router.get("/", async (req, res) => {
       .toArray();
     if (users === null) {
       res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to userModel");
+      console.log("Error connecting to users collection");
     } else {
       console.log(users);
       res.render("index", { allUsers: users });
@@ -39,7 +42,7 @@ router.get("/pets", async (req, res) => {
     const pets = await petModel.findAll({ attributes: ["name"] }); //{where: {web_user_id: 1}}
     if (pets === null) {
       res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to userModel");
+      console.log("Error connecting to pets model");
     } else {
       console.log(pets);
       res.render("pets", { allPets: pets });
@@ -79,7 +82,11 @@ router.get("/deleteUser", async (req, res) => {
     console.log("delete user");
 
     let userId = req.query.id;
-    if (userId) {
+    const validationResult = schema.validate(userId);
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      throw validationResult.error;
+    } else if (userId) {
       console.log("userId: " + userId);
       let deleteUser = await userModel.findByPk(userId);
       console.log("deleteUser: ");
@@ -95,7 +102,7 @@ router.get("/deleteUser", async (req, res) => {
 
 router.post("/addUser", async (req, res) => {
   try {
-    console.log("form submit");
+    console.log("add user form submit");
 
     const password_salt = crypto.createHash("sha512");
 
