@@ -39,8 +39,6 @@ router.get("/pets", async (req, res) => {
   console.log("page hit pets");
 
   try {
-    // const userCollection = database.db("lab_example").collection("users");
-    // const pets = awaits userCollection.find().
     const pets = await petModel.findAll({ attributes: ["name"] }); //{where: {web_user_id: 1}}
     if (pets === null) {
       res.render("error", { message: "Error connecting to MongoDB pets" });
@@ -108,8 +106,22 @@ router.get("/deleteUser", async (req, res) => {
 router.post("/addUser", async (req, res) => {
   try {
     console.log("add user form submit");
-    const schema = Joi.string().max(10).required();
-    const validationResult = schema.validate(req.body);
+    const schema = Joi.object({
+      first_name: Joi.string().alphanum().min(3).max(30).required(),
+      last_name: Joi.string().alphanum().min(3).max(30).required(),
+      email: Joi.string().email({
+        minDomainSegments: 2,
+        tlds: { allow: ["com", "net"] },
+      }),
+      password: Joi.string().min(8).max(30).required(),
+    });
+    const userToBeValidated = {
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password: req.body.password,
+    };
+    const validationResult = schema.validate(userToBeValidated);
     if (validationResult.error != null) {
       console.log(validationResult.error);
       throw validationResult.error;
@@ -121,7 +133,9 @@ router.post("/addUser", async (req, res) => {
     const password_hash = crypto.createHash("sha512");
 
     password_hash.update(req.body.password + passwordPepper + password_salt);
+
     const userCollection = database.db("lab_example").collection("users");
+
     let newUser = userCollection.insertOne({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
